@@ -1,0 +1,28 @@
+[gd_scene load_steps=8 format=3 uid="uid://lxw0rdv62pug"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_vwedp"]
+[ext_resource type="PackedScene" uid="uid://b2q5462bdb0q2" path="res://scenes/player/Player.tscn" id="2_65yxm"]
+[ext_resource type="PackedScene" uid="uid://b3r7qpb7qqyqr" path="res://scenes/managers/EnemyManager.tscn" id="3_ekfjl"]
+[ext_resource type="PackedScene" uid="uid://4wmx6pcc3vg0" path="res://scenes/managers/ItemManager.tscn" id="4_hg2ct"]
+[ext_resource type="PackedScene" uid="uid://vfxs4j08pfup" path="res://scenes/managers/RoomManager.tscn" id="5_f3ngg"]
+[ext_resource type="PackedScene" uid="uid://docm2db81k064" path="res://scenes/ui/UI.tscn" id="6_r5clf"]
+[ext_resource type="PackedScene" uid="uid://h3xx5f835571" path="res://scenes/managers/GameManager.tscn" id="7_y63d1"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_vwedp")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+
+[node name="Player" parent="." instance=ExtResource("2_65yxm")]
+
+[node name="EnemyManager" parent="." instance=ExtResource("3_ekfjl")]
+
+[node name="ItemManager" parent="." instance=ExtResource("4_hg2ct")]
+
+[node name="RoomManager" parent="." instance=ExtResource("5_f3ngg")]
+
+[node name="UI" parent="." instance=ExtResource("6_r5clf")]
+script = null
+
+[node name="GameManager" parent="." instance=ExtResource("7_y63d1")]

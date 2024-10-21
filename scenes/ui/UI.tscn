@@ -1,0 +1,100 @@
+[gd_scene load_steps=2 format=3 uid="uid://docm2db81k064"]
+
+[ext_resource type="Script" path="res://scripts/ui/UI.gd" id="1_ntpic"]
+
+[node name="CanvasLayer(UI)" type="CanvasLayer"]
+script = ExtResource("1_ntpic")
+
+[node name="Control(HUD)" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TextureProgressBar(HP)" type="TextureProgressBar" parent="Control(HUD)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label(score)" type="Label" parent="Control(HUD)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="Label(Gold)" type="Label" parent="Control(HUD)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+
+[node name="HBoxContainer(skill_icon)" type="HBoxContainer" parent="Control(HUD)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="TextureRect(skill_icon)" type="TextureRect" parent="Control(HUD)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Control(PauseMenu)" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel(background)" type="Panel" parent="Control(PauseMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control(PauseMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Button(continue)" type="Button" parent="Control(PauseMenu)/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button(settings)" type="Button" parent="Control(PauseMenu)/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button(main_menu)" type="Button" parent="Control(PauseMenu)/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button(quit)" type="Button" parent="Control(PauseMenu)/VBoxContainer"]
+layout_mode = 2
+
+[node name="Control(UpgradeMenu)" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel(background)" type="Panel" parent="Control(UpgradeMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control(UpgradeMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control(UpgradeMenu)/ScrollContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control(UpgradeMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Button(confirn)" type="Button" parent="Control(UpgradeMenu)/HBoxContainer"]
+layout_mode = 2
+
+[node name="Button(cancel)" type="Button" parent="Control(UpgradeMenu)/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label(description)" type="Label" parent="Control(UpgradeMenu)"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
