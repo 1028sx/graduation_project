@@ -181,7 +181,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -204,7 +204,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"die",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -224,7 +224,7 @@ animations = [{
 }],
 "loop": false,
 "name": &"hurt",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -244,7 +244,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"idle",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -273,7 +273,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"run",
-"speed": 5.0
+"speed": 10.0
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_3khgf"]
@@ -283,20 +283,23 @@ height = 48.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_pqsfr"]
 radius = 265.37
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_gokls"]
-radius = 171.0
-
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kpofg"]
 radius = 15.0
 height = 46.0
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_gokls"]
+radius = 171.0
+
 [node name="Archer" type="CharacterBody2D"]
 collision_layer = 2
+collision_mask = 19
 script = ExtResource("1_w88m3")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_0wona")
-animation = &"die"
+animation = &"attack"
+frame = 10
+frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(-6, 11)
@@ -311,6 +314,16 @@ shape = SubResource("CircleShape2D_pqsfr")
 
 [node name="AttackTimer" type="Timer" parent="."]
 
+[node name="Hitbox" type="Area2D" parent="."]
+light_mask = 0
+visibility_layer = 0
+collision_layer = 8
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+position = Vector2(-5, 9)
+shape = SubResource("CapsuleShape2D_kpofg")
+
 [node name="AttackArea" type="Area2D" parent="."]
 collision_layer = 128
 collision_mask = 8
@@ -318,12 +331,4 @@ collision_mask = 8
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
 shape = SubResource("CircleShape2D_gokls")
 
-[node name="Hitbox" type="Area2D" parent="."]
-light_mask = 0
-visibility_layer = 0
-collision_layer = 32768
-collision_mask = 2147483648
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
-position = Vector2(-5, 9)
-shape = SubResource("CapsuleShape2D_kpofg")
+[connection signal="area_entered" from="Hitbox" to="." method="_on_hitbox_area_entered"]

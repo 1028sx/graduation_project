@@ -631,7 +631,7 @@ script = ExtResource("1_b51by")
 
 [node name="AniSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_pdjgy")
-animation = &"jump"
+animation = &"sp_attack"
 autoplay = "run"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
