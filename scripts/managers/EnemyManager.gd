@@ -2,7 +2,8 @@ extends Node2D
 
 # 預加載敵人場景
 @export var enemy_scenes = {
-	"archer": preload("res://scenes/enemies/Archer.tscn")
+	"archer": preload("res://scenes/enemies/Archer.tscn"),
+	"boar": preload("res://scenes/enemies/Boar.tscn")  # 添加野豬場景
 }
 
 # 信號
@@ -42,9 +43,11 @@ func calculate_num_enemies(difficulty: int) -> int:
 	# 根據難度計算敵人數量的邏輯
 	return difficulty + 2  # 簡單的示例邏輯
 
-func choose_enemy_type(_difficulty: int) -> String:
+func choose_enemy_type(difficulty: int) -> String:
 	# 根據難度選擇敵人類型的邏輯
-	# 目前只有弓箭手，所以直接返回
+	if difficulty >= 3:
+		# 在較高難度時有機會生成野豬
+		return "boar" if randf() < 0.3 else "archer"
 	return "archer"
 
 func clear_current_enemies():

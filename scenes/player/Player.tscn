@@ -727,7 +727,7 @@ script = ExtResource("1_b51by")
 [node name="AniSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(-1, -27)
 sprite_frames = SubResource("SpriteFrames_pdjgy")
-animation = &"attack3"
+animation = &"idle"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 6)
@@ -761,7 +761,7 @@ script = ExtResource("14_ws8m1")
 [node name="DoubleJumpEffect" type="AnimatedSprite2D" parent="EffectManager"]
 z_index = 1
 position = Vector2(0, 22)
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_8tauv")
 animation = &"smoke"
 frame = 9
@@ -769,3 +769,5 @@ frame_progress = 1.0
 
 [connection signal="animation_finished" from="AniSprite2D" to="." method="_on_ani_sprite_2d_animation_finished"]
 [connection signal="frame_changed" from="AniSprite2D" to="." method="_on_ani_sprite_2d_frame_changed"]
+[connection signal="effect_finished" from="EffectManager" to="." method="_on_effect_manager_effect_finished"]
+[connection signal="animation_finished" from="EffectManager/DoubleJumpEffect" to="." method="_on_double_jump_effect_animation_finished"]

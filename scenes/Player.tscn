@@ -1,4 +1,4 @@
-[gd_scene load_steps=96 format=3 uid="uid://8s1xuywwuap"]
+[gd_scene load_steps=96 format=3 uid="uid://dcfnsuj66nabm"]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1_b51by"]
 [ext_resource type="Texture2D" uid="uid://cyr1632llp4qs" path="res://assets/players/Sprites/DASH.png" id="2_egfxe"]

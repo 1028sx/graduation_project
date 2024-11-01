@@ -2,7 +2,6 @@ extends Node2D
 
 #region 節點引用
 @onready var player = $Player
-@onready var camera = $Camera2D
 @onready var room_manager = $RoomManager
 @onready var enemy_manager = $EnemyManager
 @onready var item_manager = $ItemManager
@@ -19,14 +18,18 @@ var world_size: Vector2
 func _ready():
 	_initialize_game()
 	_setup_test_room()
-	_initialize_camera()
 
 func _initialize_game():
+	_connect_signals()
+	_initialize_sizes()
+
+func _connect_signals():
 	if room_manager and room_manager.has_signal("room_changed"):
 		room_manager.connect("room_changed", Callable(self, "_on_room_changed"))
 	if enemy_manager and enemy_manager.has_signal("all_enemies_defeated"):
 		enemy_manager.connect("all_enemies_defeated", Callable(self, "_on_all_enemies_defeated"))
-	
+
+func _initialize_sizes():
 	screen_size = get_viewport_rect().size
 	world_size = Vector2(1920, 1080)
 
@@ -45,24 +48,18 @@ func _setup_player_position(test_room):
 func _spawn_initial_enemies(test_room):
 	var enemy_spawn_points = test_room.get_node("EnemySpawnPoints")
 	if is_instance_valid(enemy_spawn_points) and enemy_spawn_points.get_child_count() > 0:
-		var archer = enemy_manager.enemy_scenes["archer"].instantiate()
-		archer.global_position = enemy_spawn_points.get_child(0).global_position
-		test_room.add_child(archer)
+		_spawn_archer(test_room, enemy_spawn_points)
+		_spawn_boar(test_room, enemy_spawn_points)
 
-func _initialize_camera():
-	if is_instance_valid(camera):
-		camera.make_current()
-		camera.position = get_viewport_rect().size / 2
-#endregion
+func _spawn_archer(test_room, spawn_points):
+	var archer = enemy_manager.enemy_scenes["archer"].instantiate()
+	archer.global_position = spawn_points.get_child(0).global_position
+	test_room.add_child(archer)
 
-#region 主要更新循環
-func _process(delta):
-	_update_camera(delta)
-
-func _update_camera(delta):
-	if is_instance_valid(player) and is_instance_valid(camera):
-		var target_position = player.global_position
-		camera.global_position = camera.global_position.lerp(target_position, 10 * delta)
+func _spawn_boar(test_room, spawn_points):
+	var boar = enemy_manager.enemy_scenes["boar"].instantiate()
+	boar.global_position = spawn_points.get_child(0).global_position + Vector2(100, 0)
+	test_room.add_child(boar)
 #endregion
 
 #region 遊戲系統
@@ -80,13 +77,16 @@ func _toggle_pause():
 func spawn_enemy(enemy_scene, spawn_position: Vector2):
 	var enemy = enemy_scene.instantiate()
 	enemy.global_position = spawn_position
+	_setup_enemy_collision(enemy)
+	add_child(enemy)
+
+func _setup_enemy_collision(enemy):
 	enemy.collision_layer = 0b0010
 	enemy.collision_mask = 0b0001
 	
 	if enemy.has_node("AttackArea"):
 		enemy.get_node("AttackArea").collision_layer = 0b1000
 		enemy.get_node("AttackArea").collision_mask = 0b0100
-	add_child(enemy)
 
 func spawn_enemies():
 	var enemy_spawn_points = get_tree().get_nodes_in_group("enemy_spawn")

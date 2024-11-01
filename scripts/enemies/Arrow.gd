@@ -1,7 +1,7 @@
 extends CharacterBody2D
 
 #region 導出屬性
-@export var speed = 300.0
+@export var speed = 500.0
 @export var damage = 10
 #endregion
 
