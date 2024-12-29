@@ -1,117 +1,238 @@
 extends CanvasLayer
 
-@onready var hud = $HUD
-@onready var pause_menu = $PauseMenu
-@onready var upgrade_menu = $UpgradeMenu
-@onready var upgrade_description = $UpgradeMenu/description
-@onready var game_over_screen = $GameOverScreen
+@onready var hud = $Control_HUD
+@onready var health_bar = $Control_HUD/TextureProgressBar_HP
+@onready var mana_bar = $Control_HUD/TextureProgressBar_MP
+@onready var revive_heart = $Control_HUD/TextureRect_Heart
+@onready var boss_health_bar = $Control_HUD/TextureProgressBar_BossHP
+@onready var boss_hp_decors = [
+	$Control_HUD/TextureRect_Deer1,
+	$Control_HUD/TextureRect_Deer2,
+	$Control_HUD/TextureRect_Deer3,
+	$Control_HUD/TextureRect_Deer4,
+	$Control_HUD/TextureRect_Deer5
+]
+
+const PauseMenu = preload("res://scenes/ui/PauseMenu.tscn")
+var pause_menu
+var is_initialized := false
 
 func _ready():
+	add_to_group("ui")
+	_initialize_bars()
+	
+	# 添加暫停選單
+	pause_menu = PauseMenu.instantiate()
+	add_child(pause_menu)
 	if pause_menu:
-		pause_menu.hide()
-	if upgrade_menu:
-		upgrade_menu.hide()
-	if game_over_screen:
-		game_over_screen.hide()
+		pause_menu.back_to_menu.connect(_on_back_to_menu)
+	
+	# 等待一幀後再設置信號
+	await get_tree().process_frame
+	_setup_signals()
 
-func show_pause_menu():
-	if pause_menu:
-		pause_menu.show()
+func _initialize_bars():
+	if health_bar:
+		health_bar.min_value = 0
+		health_bar.max_value = 100
+		health_bar.value = 100
+		health_bar.fill_mode = TextureProgressBar.FILL_LEFT_TO_RIGHT
+	
+	if mana_bar:
+		mana_bar.min_value = 0
+		mana_bar.max_value = 100
+		mana_bar.value = 100
+		mana_bar.fill_mode = TextureProgressBar.FILL_LEFT_TO_RIGHT
+	
+	if boss_health_bar:
+		boss_health_bar.hide()
+		boss_health_bar.custom_minimum_size = Vector2(500, 40)
+		boss_health_bar.size = Vector2(500, 40)
+		boss_health_bar.position.y += 20
+		boss_health_bar.texture_progress_offset = Vector2(33, 0)
+		
+		# 設置每個裝飾的固定位置並隱藏
+		for i in range(boss_hp_decors.size()):
+			var decor = boss_hp_decors[i]
+			if decor:
+				match i:
+					0: decor.position = Vector2(415, 5)
+					1: decor.position = Vector2(440, 31)
+					2: decor.position = Vector2(707, 20)
+					3: decor.position = Vector2(467, -8)
+					4: decor.position = Vector2(406, 63)
+				decor.hide()  # 初始時隱藏所有裝飾
 
-func hide_pause_menu():
-	if pause_menu:
-		pause_menu.hide()
+func _setup_signals() -> void:
+	if not is_initialized and is_inside_tree():
+		is_initialized = true
+		
+		# 連接節點添加信號
+		if not get_tree().node_added.is_connected(_on_node_added):
+			get_tree().node_added.connect(_on_node_added)
+		
+		# 連接玩家金錢變化信號
+		var player = get_tree().get_first_node_in_group("player")
+		if player:
+			if not player.gold_changed.is_connected(update_gold):
+				player.gold_changed.connect(update_gold)
+			# 立即更新當前金錢顯示
+			update_gold(player.gold)
 
-func show_upgrade_menu():
-	if upgrade_menu:
-		upgrade_menu.show()
+func _connect_player():
+	# 確保節點已經在場景樹中
+	if not is_inside_tree():
+		return
+		
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		# 先斷開可能存在的連接
+		if player.health_changed.is_connected(_on_player_health_changed):
+			player.health_changed.disconnect(_on_player_health_changed)
+		if player.gold_changed.is_connected(update_gold):
+			player.gold_changed.disconnect(update_gold)
+		
+		# 重新連接信號
+		player.health_changed.connect(_on_player_health_changed)
+		player.gold_changed.connect(update_gold)
+		
+		# 更新血量和金錢顯示
+		_update_health_bar(player)
+		update_gold(player.gold)
 
-func hide_upgrade_menu():
-	if upgrade_menu:
-		upgrade_menu.hide()
+func _update_health_bar(player: Node) -> void:
+	if health_bar and player:
+		health_bar.max_value = player.max_health
+		health_bar.value = player.current_health
 
-func update_hud(_health: int, _score: int):
-	# 函數內容
-	pass  # 添加 pass 語句來避免空函數的錯誤
+func _exit_tree():
+	if get_tree():
+		if get_tree().node_added.is_connected(_on_node_added):
+			get_tree().node_added.disconnect(_on_node_added)
+		
+		# 斷開玩家信號
+		var player = get_tree().get_first_node_in_group("player")
+		if player:
+			if player.health_changed.is_connected(_on_player_health_changed):
+				player.health_changed.disconnect(_on_player_health_changed)
+			if player.gold_changed.is_connected(update_gold):
+				player.gold_changed.disconnect(update_gold)
+		
+		# 斷開 boss 信號
+		var boss = get_tree().get_first_node_in_group("boss")
+		if boss:
+			if boss.health_changed.is_connected(_on_boss_health_changed):
+				boss.health_changed.disconnect(_on_boss_health_changed)
+			if boss.boss_appeared.is_connected(_on_boss_appeared):
+				boss.boss_appeared.disconnect(_on_boss_appeared)
+			if boss.defeated.is_connected(_on_boss_defeated):
+				boss.defeated.disconnect(_on_boss_defeated)
 
-func update_upgrade_description(description: String):
-	if upgrade_description:
-		upgrade_description.text = description
+func _on_node_added(node: Node):
+	if node.is_in_group("boss"):
+		call_deferred("_connect_boss_signals", node)
+
+func _connect_boss_signals(boss: Node) -> void:
+	# 先斷開可能存在的連接
+	if boss.health_changed.is_connected(_on_boss_health_changed):
+		boss.health_changed.disconnect(_on_boss_health_changed)
+	if boss.boss_appeared.is_connected(_on_boss_appeared):
+		boss.boss_appeared.disconnect(_on_boss_appeared)
+	if boss.defeated.is_connected(_on_boss_defeated):
+		boss.defeated.disconnect(_on_boss_defeated)
+	
+	# 重新連接信號
+	boss.health_changed.connect(_on_boss_health_changed)
+	boss.boss_appeared.connect(_on_boss_appeared)
+	boss.defeated.connect(_on_boss_defeated)
+	
+	# 初始化血量條
+	if boss_health_bar:
+		boss_health_bar.max_value = boss.health
+		boss_health_bar.value = boss.health
+		boss_health_bar.show()
+		# 顯示所有裝飾
+		for decor in boss_hp_decors:
+			if decor:
+				decor.show()
+
+func _on_boss_appeared():
+	if boss_health_bar:
+		var boss = get_tree().get_first_node_in_group("boss")
+		if boss:
+			boss_health_bar.max_value = boss.health
+			boss_health_bar.value = boss.health
+			boss_health_bar.show()
+			var tween = create_tween()
+			tween.set_trans(Tween.TRANS_SINE)
+			tween.set_ease(Tween.EASE_OUT)
+			tween.tween_property(boss_health_bar, "value", boss.health, 0.1)
+			# 顯示所有裝飾
+			for decor in boss_hp_decors:
+				if decor:
+					decor.show()
+
+func _on_boss_health_changed(new_health: int) -> void:
+	if boss_health_bar:
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(boss_health_bar, "value", new_health, 0.3)
+
+func _on_boss_defeated():
+	if boss_health_bar:
+		boss_health_bar.hide()
+		# 隱藏所有裝飾
+		for decor in boss_hp_decors:
+			if decor:
+				decor.hide()
+
+func _on_player_health_changed(new_health: int) -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if player and health_bar:
+		health_bar.max_value = player.max_health
+		update_health(new_health)
 
 func update_health(health: int):
-	var health_bar = hud.get_node_or_null("TextureProgressBar")
 	if health_bar:
-		health_bar.value = health
-	var health_label = hud.get_node_or_null("Label_Health")
-	if health_label:
-		health_label.text = str(health)
-
-func update_score(score: int):
-	var score_label = hud.get_node_or_null("Label_score")
-	if score_label:
-		score_label.text = str(score)
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(health_bar, "value", health, 0.3)
 
 func update_gold(gold: int):
+	if not hud:
+		return
+		
 	var gold_label = hud.get_node_or_null("Label_Gold")
 	if gold_label:
-		gold_label.text = str(gold)
+		gold_label.text = "Gold: " + str(gold)
 
-func update_skill_icons(skills: Array):
-	var skill_container = hud.get_node_or_null("HBoxContainer_skill_icon")
-	if skill_container:
-		for i in range(skill_container.get_child_count()):
-			var skill_icon = skill_container.get_child(i)
-			if i < skills.size():
-				if skills[i] is String:
-					match skills[i]:
-						"special_attack":
-							skill_icon.texture = load("res://assets/players/Sprites/SPECIAL_ATTACK.png")
-						"block":
-							skill_icon.texture = load("res://assets/players/Sprites/DEFEND.png")
-				else:
-					skill_icon.texture = skills[i]
-				skill_icon.show()
-			else:
-				skill_icon.hide()
+func update_mana(mana: int):
+	if mana_bar:
+		var tween = create_tween()
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.tween_property(mana_bar, "value", mana, 0.3)
 
-func show_game_over_screen():
-	if game_over_screen:
-		game_over_screen.show()
+func use_revive_heart():
+	print("[UI] 隱藏重生之心")
+	if revive_heart and is_instance_valid(revive_heart):
+		revive_heart.visible = false
 
-func hide_game_over_screen():
-	if game_over_screen:
-		game_over_screen.hide()
+func restore_revive_heart() -> void:
+	print("[UI] 顯示重生之心")
+	if revive_heart and is_instance_valid(revive_heart):
+		revive_heart.visible = true
 
-func update_level(level: int):
-	var level_label = hud.get_node_or_null("Label_Level")
-	if level_label:
-		level_label.text = "Level: " + str(level)
+func _process(_delta: float) -> void:
+	# 檢查是否有新的 boss 節點
+	if get_tree():
+		var boss = get_tree().get_first_node_in_group("boss")
+		if boss and boss_health_bar and not boss_health_bar.visible:
+			# 檢查信號連接
+			if not boss.health_changed.is_connected(_on_boss_health_changed):
+				_connect_boss_signals(boss)
 
-func update_difficulty(difficulty: int):
-	var difficulty_label = hud.get_node_or_null("Label_Difficulty")
-	if difficulty_label:
-		difficulty_label.text = "Difficulty: " + str(difficulty)
-
-func show_message(message: String, duration: float = 2.0):
-	var message_label = hud.get_node_or_null("Label_Message")
-	if message_label:
-		message_label.text = message
-		message_label.show()
-		get_tree().create_timer(duration).timeout.connect(func(): message_label.hide())
-
-func _on_resume_button_pressed():
-	hide_pause_menu()
-	get_tree().paused = false
-
-func _on_quit_button_pressed():
-	get_tree().quit()
-
-func _on_restart_button_pressed():
-	get_tree().paused = false
-	get_tree().reload_current_scene()
-
-func _on_upgrade_selected(_upgrade: String):
-	# 這裡可以添加升級選擇的邏輯
-	hide_upgrade_menu()
-	# 發送信號給 Main 或 GameManager 處理升級邏輯
-	# emit_signal("upgrade_selected", _upgrade)
+func _on_back_to_menu():
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

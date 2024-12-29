@@ -4,10 +4,12 @@
 [ext_resource type="Texture2D" uid="uid://d1tpk27450c3c" path="res://assets/enemies/archer/arrow.png" id="2_nmm01"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_cyvqn"]
-radius = 2.0
+radius = 3.0
+height = 60.0
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_srh38"]
-radius = 2.0
+radius = 3.0
+height = 60.0
 
 [node name="Arrow" type="CharacterBody2D"]
 collision_layer = 32
@@ -15,6 +17,7 @@ collision_mask = 5
 script = ExtResource("1_28do3")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)
 texture = ExtResource("2_nmm01")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

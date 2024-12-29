@@ -2,6 +2,8 @@ extends Node2D
 
 # 預加載道具場景
 @export var item_scenes = {
+	"word": preload("res://scenes/items/Word.tscn"),
+	"loot": preload("res://scenes/ui/loot.tscn"),
 	# 暫時註釋掉尚未實現的道具
 	# "health_potion": preload("res://scenes/items/HealthPotion.tscn"),
 	# "speed_boost": preload("res://scenes/items/SpeedBoost.tscn"),
@@ -62,8 +64,12 @@ func clear_current_items():
 	current_items.clear()
 
 func _on_item_collected(item):
-	# 暫時註釋掉信號發送
-	# emit_signal("item_collected", item.item_type)
+	if item.is_in_group("word"):
+		var word_system = get_node("/root/WordSystem")
+		if word_system:
+			word_system.collected_words.append(item.character)
+			word_system.check_idioms()  # 檢查是否可以組成成語
+	
 	current_items.erase(item)
 
 func apply_item_effect(item_type: String, player: CharacterBody2D):
@@ -101,3 +107,35 @@ func get_items_in_range(item_position: Vector2, search_range: float) -> Array:
 				items_in_range.append(item)
 	
 	return items_in_range
+
+func spawn_word_drop(enemy: Node2D) -> void:
+	var word_system = get_node("/root/WordSystem")
+	if not word_system:
+		return
+		
+	var enemy_type = enemy.name
+	if word_system.ENEMY_WORDS.has(enemy_type):
+		var possible_words = word_system.ENEMY_WORDS[enemy_type]
+		var word = possible_words[randi() % possible_words.size()]
+		
+		if item_scenes.has("word"):
+			var word_instance = item_scenes["word"].instantiate()
+			word_instance.setup({
+				"character": word
+			})
+			word_instance.global_position = enemy.global_position
+			enemy.get_parent().add_child(word_instance)
+			current_items.append(word_instance)
+
+func spawn_loot_at_position(pos: Vector2) -> void:
+	# 檢查是否應該生成戰利品
+	var game_manager = get_tree().get_first_node_in_group("game_manager")
+	if game_manager and not game_manager.should_spawn_loot():
+		return
+		
+	# 生成戰利品
+	if item_scenes.has("loot"):
+		var loot = item_scenes["loot"].instantiate()
+		loot.global_position = pos
+		get_tree().current_scene.add_child(loot)
+		current_items.append(loot)
